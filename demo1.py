@@ -1,10 +1,6 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain.schema.output_parser import StrOutputParser
-from langchain.agents import Tool
-from langchain_experimental.utilities import PythonREPL
-from langchain.tools.render import format_tool_to_openai_function
-
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Optional  
 
@@ -12,28 +8,7 @@ from app.prompts.stage1 import p_s, p_a, p_i
 from app.prompts.stage2 import stage_2_prompt
 from app.reasoning_modules import reasoning_modules
 
-from dotenv import load_dotenv
-import os
-import logging
-
-python_repl = PythonREPL()
-
-repl_tool = Tool(
-    name="python_repl",
-    description="A Python shell. Use this to execute python commands. Input should be a valid python command. If you want to see the output of a value, you should print it out with `print(...)`.",
-    func=python_repl.run,
-)
-
-tools = [repl_tool]
-functions = [format_tool_to_openai_function(t) for t in tools]
-
 model = ChatOpenAI(temperature=0.5, model="gpt-4-turbo-preview")
-model = model.bind_functions(functions)
-
-load_dotenv()
-
-#my_id = os.getenv("ID")
-
 
 ########### STAGE 1 ###########
 select_prompt = PromptTemplate(input_variables=["reasoning_modules", "task_description"], template=p_s )
@@ -42,6 +17,8 @@ implement_prompt = PromptTemplate(input_variables=["adapted_modules", "task_desc
 
 ########### STAGE 2 ###########
 stage_2_prompt_ = PromptTemplate(input_variables=["reasoning_structure", "task_description"], template=stage_2_prompt)
+
+########### Graph #############
 
 class SelfDiscoverState(TypedDict):
     reasoning_modules: str
@@ -78,6 +55,7 @@ graph.add_edge("implement", "stage_2")
 graph.add_edge("stage_2", END)
 graph.set_entry_point("select")
 app = graph.compile()
+
 
 task_example = """This SVG path element <path d="M 55.57,80.69 L 57.38,65.80 M 57.38,65.80 L 48.90,57.46 M 48.90,57.46 L
 45.58,47.78 M 45.58,47.78 L 53.25,36.07 L 66.29,48.90 L 78.69,61.09 L 55.57,80.69"/> draws a:

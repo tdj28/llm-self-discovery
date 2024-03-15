@@ -4,3 +4,5 @@ langchain_core
 langchain_experimental==0.0.54
 langgraph
 python-dotenv
+duckduckgo-search
+matplotlib
