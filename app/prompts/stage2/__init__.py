@@ -1,0 +1,1 @@
+from app.prompts.stage2.prompt import stage_2_prompt
